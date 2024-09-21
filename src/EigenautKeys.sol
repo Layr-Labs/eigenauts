@@ -39,12 +39,7 @@ contract EigenautKeys is Locksmith {
      * of the governing keys. All of these keys will be sent to the deployer
      * by default, and soulbound.
      */
-    constructor() ERC1155('') {
-        // create the trust and the root key
-
-        // mint the initial governing roles into the deployer
-
-    }
+    constructor() {}
         
     /**
      * name
