@@ -117,8 +117,9 @@ interface IEigenauts {
      * key holder.
      * 
      * This method reverts if:
-     * - The caller is not the deployer
+     * - The caller is not the deployer.
      * - Genesis function has already been executed once successfully.
+     * - the keys provided are not validated on the same ring.
      *
      * @param locksmith      the locksmith used for governance keys
      * @param maintenanceKey the key required to be able to upgrade this contract

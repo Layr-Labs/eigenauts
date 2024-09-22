@@ -54,7 +54,6 @@ contract Eigenauts is IEigenauts, Initializable, ERC721Upgradeable, UUPSUpgradea
     address private           _locksmith; // Address of the master locksmith (satisfies IEigenauts)
     
     // These values are set at Eigenaut genesis time, and shouldn't change. 
-    uint256 public ROOT_KEY;            // priviledge escalation for the entire system
     uint256 public MAINTAINER_KEY;      // upgrade permission on this contract
     uint256 public MINTER_KEY;          // key used for minting eigenauts 
 
@@ -145,7 +144,8 @@ contract Eigenauts is IEigenauts, Initializable, ERC721Upgradeable, UUPSUpgradea
      * @return true if the method signature is there, false otherwise.
      */ 
     function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable) returns (bool) {
-        return super.supportsInterface(interfaceId);
+        return (interfaceId == type(IEigenauts).interfaceId) || 
+            super.supportsInterface(interfaceId);
     }
     
     /////////////////////////////////////////////////
@@ -196,6 +196,12 @@ contract Eigenauts is IEigenauts, Initializable, ERC721Upgradeable, UUPSUpgradea
     function genesis(address locksmith, uint256 maintenanceKey, uint256 minterKey) initializer external {
         // ensure only the deployer can call this
         require(msg.sender == _deployer, 'NOT_DEPLOYER');
+
+        // to ensure there is no misconfiguration, or weird governance results,
+        // we are going to validate the maintenance key and the minter key
+        // to the same root of trust against the locksmith.
+        require(ILocksmith(locksmith).getRingId(maintenanceKey) == ILocksmith(locksmith).getRingId(minterKey),
+            'ROOT_TRUST_MISMATCH');
 
         // this is the reference that will be used when determining 
         // if we trust a message caller
