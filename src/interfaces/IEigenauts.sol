@@ -25,6 +25,66 @@ pragma solidity ^0.8.23;
 //
 /////////////////////////////////////////////////////
 interface IEigenauts {
+    /////////////////////////////////////////////////
+    // Events
+    /////////////////////////////////////////////////
+
+    /**
+     * EigenautGenesis
+     *
+     * This event fires once when genesis occurs.
+     *
+     * @param operator       the deployer of the eigenaut contract, essentially
+     * @param locksmith      the reference to the locksmith to enforce permissions
+     * @param maintenanceKey the key id from the locksmith that is allowed to upgrade the contract
+     * @param minterKey      the key id from the locksmith that is allowed to mint keys
+     */
+    event EigenautGenesis(
+        address operator,
+        address locksmith,
+        uint256 maintenanceKey,
+        uint256 minterKey
+    );
+
+    /**
+     * EigenautCreated
+     *
+     * This event fires when a new eigenaut is minted.
+     *
+     * @param operator  the address of the key holder that minted the eigenaut
+     * @param minterKey the minter key Id that was authenticated to create the token
+     * @param tokenId   the "population ID" of the user.
+     * @param tokenUri  the metadata attached to the eigenaut
+     * @param receiver  the recipient of the newly minted eigenaut
+     */
+    event EigenautCreated(
+        address operator,
+        uint256 minterKey,
+        uint256 tokenId,
+        string tokenUri,
+        address receiver
+    );
+
+    /**
+     * EigenautDelegation
+     *
+     * This event fires when an eigenaut delegates their
+     * holdership to a hotter wallet for safety.
+     *
+     * @param operator the holder of the eigenaut that initiated the delegation
+     * @param tokenId  the Id of the eigenaut that was being delegated
+     * @param delegate the address of the new delegate for the enumerated eigenaut
+     */
+    event EigenautDelegation(
+        address operator,
+        uint256 tokenId,
+        address delegate
+    );
+
+    /////////////////////////////////////////////////
+    // Interface 
+    /////////////////////////////////////////////////
+    
     /**
      * genesis
      *

@@ -39,7 +39,7 @@ import "src/interfaces/IEigenauts.sol";
 // 4) Migrating or moving Eigenauts safely to new wallets.
 //
 /////////////////////////////////////////////////////
-contract Eigenauts is Initializable, ERC721Upgradeable, UUPSUpgradeable {
+contract Eigenauts is IEigenauts, Initializable, ERC721Upgradeable, UUPSUpgradeable {
     /////////////////////////////////////////////////
     // Token Storage 
     /////////////////////////////////////////////////
@@ -75,6 +75,18 @@ contract Eigenauts is Initializable, ERC721Upgradeable, UUPSUpgradeable {
         _;
     }
 
+    /**
+     * onlyEigenautHolder
+     *
+     * Access control modifer to ensure the message sender
+     * actually holds the eigenaut that is required for the action.
+     *
+     * @param eigenautId the id of the ERC721 token the message sender must hold
+     */
+    modifier onlyEigenautHolder(uint256 eigenautId) {
+        require(msg.sender == this.ownerOf(eigenautId), 'EIGENAUT_MISSING');
+        _;
+    }
     /////////////////////////////////////////////////
     // Deployments and Initialization 
     /////////////////////////////////////////////////
@@ -196,7 +208,12 @@ contract Eigenauts is Initializable, ERC721Upgradeable, UUPSUpgradeable {
 
         // set the governance requirements
         MAINTAINER_KEY = maintenanceKey;
-        MINTER_KEY = minterKey; 
+        MINTER_KEY = minterKey;
+
+        // the genesis event emits all of the immutable data
+        // for this contract, which for now includes the key
+        // permissions
+        emit EigenautGenesis(msg.sender, _locksmith, MAINTAINER_KEY, MINTER_KEY);
     }
     
     /**
@@ -220,10 +237,17 @@ contract Eigenauts is Initializable, ERC721Upgradeable, UUPSUpgradeable {
         // store the metadata uri
         _metadata[population] = eigenautURI; 
 
+        // we are going to emit the event here to prevent re-entrancy
+        // from corrupting the population count in events. This log
+        // is only available if the transaction completes, so this
+        // is safe. It is a design decision to enable safe re-entrancy
+        // here instead of prevent it with more gas/code
+        emit EigenautCreated(msg.sender, MINTER_KEY, population, _metadata[population], recipient);  
+        
         // mint the token and increment the population couner
         // we are sending the NFT to the receiver here so we need
         // to ensure this is the last thing that's gunna happen
-        _mint(recipient, population++); 
+        _mint(recipient, population++);
     }
 
     /**
@@ -243,8 +267,9 @@ contract Eigenauts is Initializable, ERC721Upgradeable, UUPSUpgradeable {
      * @param eigenautId the id of the NFT you want to provide a delegate for.
      * @param delegate   the address that can potentially act on behalf of a cold storage Eigenaut.
      */
-    function setEigenautDelegate(uint256 eigenautId, address delegate) onlyKeyHolder(eigenautId) external {
+    function setEigenautDelegate(uint256 eigenautId, address delegate) onlyEigenautHolder(eigenautId) external {
         _delegations[eigenautId] = delegate;
+        emit EigenautDelegation(msg.sender, eigenautId, delegate);
     }
 
     /**
