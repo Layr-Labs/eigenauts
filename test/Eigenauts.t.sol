@@ -9,6 +9,7 @@ import "lib/locksmith-core/src/interfaces/ILocksmith.sol";
 import { Locksmith } from "lib/locksmith-core/src/Locksmith.sol";
 
 // Token Contract
+import { IEigenauts } from "../src/interfaces/IEigenauts.sol";
 import { Eigenauts } from "../src/Eigenauts.sol";
 
 // Upgradeable Proxy Contract
@@ -17,6 +18,7 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 // Enables the test contract to receive keys and eigenauts
 import "openzeppelin-contracts/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 
 contract EigenautsTest is Test, ERC721Holder, ERC1155Holder {
     Locksmith public locksmith; 
@@ -66,20 +68,26 @@ contract EigenautsTest is Test, ERC721Holder, ERC1155Holder {
         // try to do it with two different trust roots and it will fail        
     }
 
-    // deploy another upgradeable contract and ensure the event is emitted,
+    // given the setup, ensure the event is emitted,
     // and all reasonably introspectable state is its proper intial values,
     // and that genesis can not be called twice
-    function test_SaneGenesis() public {
-
+    function test_SaneGenesis() public view {
         // check the locksmith reference
+        assertEq(address(locksmith), nauts.getLocksmith());
 
         // check the key definitions
+        assertEq(nauts.MAINTAINER_KEY(), MAINTENANCE_KEY);
+        assertEq(MINTER_KEY, nauts.MINTER_KEY());
 
         // check the population
+        assertEq(nauts.population(), 0);
 
         // token uris should be empty
+        assertEq(nauts.tokenURI(0), '');
 
         // interface support should be for both Eigenauts and ERC721
+        assertEq(true, nauts.supportsInterface(type(IEigenauts).interfaceId));
+        assertEq(true, nauts.supportsInterface(type(IERC721).interfaceId));
     }
 
     // ensure that only the maintenance key can upgrade the contract
