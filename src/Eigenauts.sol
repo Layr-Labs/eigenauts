@@ -194,9 +194,10 @@ contract Eigenauts is IEigenauts, Initializable, ERC721Upgradeable, UUPSUpgradea
      * @param minterKey      the key required to be able to mint eigenauts 
      */ 
     function genesis(address locksmith, uint256 maintenanceKey, uint256 minterKey) initializer external {
-        // ensure only the deployer can call this
-        require(msg.sender == _deployer, 'NOT_DEPLOYER');
-
+        // Note - this must be called via a proxy in the same transaction it is
+        // deployed or you will get an InvalidInitialization error. This ensures
+        // that only the deployer can call genesis.
+            
         // to ensure there is no misconfiguration, or weird governance results,
         // we are going to validate the maintenance key and the minter key
         // to the same root of trust against the locksmith.
@@ -252,7 +253,9 @@ contract Eigenauts is IEigenauts, Initializable, ERC721Upgradeable, UUPSUpgradea
         
         // mint the token and increment the population couner
         // we are sending the NFT to the receiver here so we need
-        // to ensure this is the last thing that's gunna happen
+        // to ensure this is the last thing that's gunna happen.
+        // presumably, minting does not initiate a callback so
+        // this is technically not re-entrant at all.
         _mint(recipient, population++);
     }
 
