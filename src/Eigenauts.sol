@@ -9,6 +9,10 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+// We use Enumerable set to maintain an index of holdings
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+using EnumerableSet for EnumerableSet.UintSet;
+
 // We will be utilizing the Locksmith Key Managemenet system for cross-contract permissions
 import "lib/locksmith-core/src/interfaces/ILocksmith.sol";
 
@@ -46,7 +50,12 @@ contract Eigenauts is IEigenauts, Initializable, ERC721Upgradeable, UUPSUpgradea
     uint256                     public  population;     // The total supply of Eigenauts minted
     mapping(uint256 => address) private _delegations;   // The delegated address for each eigenaut
     mapping(uint256 => string)  private _metadata;      // Token ID => metadataURI
-     
+
+    // We are going to keep a set for each owner on every
+    // Eigenaut they have so we can avoid the need for off-chain
+    // indexing
+    mapping(address => EnumerableSet.UintSet) private _ownerIndex; 
+    
     /////////////////////////////////////////////////
     // Access Control 
     /////////////////////////////////////////////////
@@ -280,5 +289,40 @@ contract Eigenauts is IEigenauts, Initializable, ERC721Upgradeable, UUPSUpgradea
      */ 
     function getEigenautDelegate(uint256 eigenautId) external view returns (address) {
         return _delegations[eigenautId];
+    }
+    
+    /**
+     * getEigenautsForOwner
+     *
+     * @param owner the address you want the owned list of eigenauts for
+     * @return a list of eigenaut token IDs owned by the given address
+     */
+    function getEigenautsForOwner(address owner) external view returns(uint256[] memory) {
+        return _ownerIndex[owner].values();
+    }
+
+    /////////////////////////////////////////////////
+    // Eigenaut Interface 
+    /////////////////////////////////////////////////
+
+    /**
+     * we override this function to maintain another index
+     * to avoid offchain indexing. This code was copied
+     * from its base implementation, so probably good to
+     * not muck around in here too much.
+     */
+    function _update(address to, uint256 tokenId, address auth) internal override returns (address) {
+        address from = super._update(to, tokenId, auth);
+
+        if(address(0) != from) {
+            // remove the holdership from the index
+            _ownerIndex[from].remove(tokenId);
+        }
+        if(address(0) != to) {
+            // add the holdership to the index
+            _ownerIndex[to].add(tokenId);
+        }
+
+        return from;
     }
 }

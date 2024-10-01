@@ -212,6 +212,30 @@ contract EigenautsTest is Test, ERC721Holder, ERC1155Holder {
         assertEq(address(0x12345), nauts.ownerOf(2));
         assertEq(3, nauts.population());
         assertEq('https://eigenlayer.xyz/eigenauts/2', nauts.tokenURI(2));
+
+        // test balance tracking too
+        uint256[] memory tokens = nauts.getEigenautsForOwner(address(this));
+        assertEq(1, tokens.length);
+        assertEq(0, tokens[0]); 
+        
+        // test it for the other destinations
+        uint256[] memory tokens2 = nauts.getEigenautsForOwner(address(0x1234));
+        assertEq(1, tokens2.length);
+        assertEq(1, tokens2[0]); 
+        uint256[] memory tokens3 = nauts.getEigenautsForOwner(address(0x12345));
+        assertEq(1, tokens3.length);
+        assertEq(2, tokens3[0]);
+
+        // send my naut somewhere else and check balance
+        nauts.safeTransferFrom(address(this), address(0x1234), 0, '');
+        uint256[] memory tokens4 = nauts.getEigenautsForOwner(address(0x1234));
+        assertEq(2, tokens4.length);
+        assertEq(1, tokens4[0]);
+        assertEq(0, tokens4[1]);
+
+        // make sure I'm empty
+        uint256[] memory tokens5 = nauts.getEigenautsForOwner(address(this));
+        assertEq(0, tokens5.length);
     }
 
     function test_DelegatingNonExistantEigenautFails() public {

@@ -171,4 +171,12 @@ interface IEigenauts {
      * @return the delegated address as set by the holder or 0x0
      */ 
     function getEigenautDelegate(uint256 eigenautId) external view returns (address);
+
+    /**
+     * getEigenautsForOwner
+     *
+     * @param owner the address you want the owned list of eigenauts for
+     * @return a list of eigenaut token IDs owned by the given address
+     */
+    function getEigenautsForOwner(address owner) external view returns(uint256[] memory);
 }
