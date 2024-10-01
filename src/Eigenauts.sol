@@ -50,12 +50,11 @@ contract Eigenauts is IEigenauts, Initializable, ERC721Upgradeable, UUPSUpgradea
     /////////////////////////////////////////////////
     // Access Control 
     /////////////////////////////////////////////////
-    address private immutable _deployer;  // Ensures that only the deployer can call genesis
-    address private           _locksmith; // Address of the master locksmith (satisfies IEigenauts)
+    address private _locksmith;     // Address of the master locksmith (satisfies IEigenauts)
     
     // These values are set at Eigenaut genesis time, and shouldn't change. 
-    uint256 public MAINTAINER_KEY;      // upgrade permission on this contract
-    uint256 public MINTER_KEY;          // key used for minting eigenauts 
+    uint256 public  MAINTAINER_KEY; // upgrade permission on this contract
+    uint256 public  MINTER_KEY;     // key used for minting eigenauts 
 
     /**
      * onlyKeyHolder
@@ -92,7 +91,6 @@ contract Eigenauts is IEigenauts, Initializable, ERC721Upgradeable, UUPSUpgradea
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
-        _deployer = msg.sender;  // make sure we know who the deployer is
         _disableInitializers();
     }
 
@@ -167,27 +165,16 @@ contract Eigenauts is IEigenauts, Initializable, ERC721Upgradeable, UUPSUpgradea
      *
      * The locksmith assigned at genesis cannot be changed.
      *
-     * For each root key holder provided, they will be minted an identical
-     * ERC1155 token. This gives them full unilateral
-     * governance power over who holds what keys, and defines their
-     * transferrability. When fully decentralized these keys will be burned
-     * or locked into immutable or governed agent contracts.
+     * Each maintainer key holder has unilateral control over 
+     * upgrading the core Eigenaut contract, or making it immutable.
      *
-     * For each maintainer key holder provided, they will be minted an
-     * identical ERC1155 token. This gives them unilateral
-     * control over upgrading the core Eigenaut contract, or making it immutable.
-     * 
-     * For each minter key holder provided, they will be minted an
-     * identical ERC1155 token. This gives them unilateral
-     * control over adding Eigenauts to the population. When fully decentralized
-     * these keys will be locked into immutable or governed agent contracts.
-     * While it is possible to burn all the root keys and minter keys effectively
-     * locking population, this would be a governed decision by a single root
-     * key holder.
+     * Each minter key holder has unilateral control over 
+     * adding to the Eigenaut Population and defining metadata. 
      * 
      * This method reverts if:
      * - The caller is not the deployer
      * - Genesis function has already been executed once successfully.
+     * - the keys provided are not validated on the same ring.
      *
      * @param locksmith      the locksmith used for governance keys
      * @param maintenanceKey the key required to be able to upgrade this contract

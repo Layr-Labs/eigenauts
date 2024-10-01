@@ -2,10 +2,6 @@
 pragma solidity ^0.8.23;
 
 /////////////////////////////////////////////////////
-// Custom Errors
-/////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////
 // Eigenauts
 //
 // This ERC721 NFT collection is a private collection that is
@@ -93,7 +89,7 @@ interface IEigenauts {
      * genesis
      *
      * This function is only designed to be called once,
-     * and it can only be called by the deloyer. In general,
+     * and it can only be called by the deployer. In general,
      * this function should be called in the same transaction
      * as the deployment as best practice.
      *
@@ -102,23 +98,11 @@ interface IEigenauts {
      *
      * The locksmith assigned at genesis cannot be changed.
      *
-     * For each root key holder provided, they will be minted an identical
-     * ERC1155 token. This gives them full unilateral
-     * governance power over who holds what keys, and defines their
-     * transferrability. When fully decentralized these keys will be burned
-     * or locked into immutable or governed agent contracts.
+     * Each maintainer key holder has unilateral control over 
+     * upgrading the core Eigenaut contract, or making it immutable.
      *
-     * For each maintainer key holder provided, they will be minted an
-     * identical ERC1155 token. This gives them unilateral
-     * control over upgrading the core Eigenaut contract, or making it immutable.
-     * 
-     * For each minter key holder provided, they will be minted an
-     * identical ERC1155 token. This gives them unilateral
-     * control over adding Eigenauts to the population. When fully decentralized
-     * these keys will be locked into immutable or governed agent contracts.
-     * While it is possible to burn all the root keys and minter keys effectively
-     * locking population, this would be a governed decision by a single root
-     * key holder.
+     * Each minter key holder has unilateral control over 
+     * adding to the Eigenaut Population and defining metadata. 
      * 
      * This method reverts if:
      * - The caller is not the deployer.
